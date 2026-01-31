@@ -1,7 +1,6 @@
 # DevScore
 
 A decentralized GitHub developer reputation scoring system built on GenLayer blockchain.
-"My goal was to leverage GenLayer's unique ability to 'see' the web and 'think' via AI. This DApp provides a trustless layer for project owners to verify their community members' real technical influence."
 
 ## Overview
 
@@ -56,11 +55,11 @@ DevScore is a decentralized developer reputation platform that leverages GenLaye
 
 | Grade | Score Range | Description |
 |-------|-------------|-------------|
-| A | 90-100 | Top-tier influence, renowned open source contributor |
-| B | 70-89 | Active developer with notable community presence |
-| C | 50-69 | Consistently active, steady contributor |
-| D | 30-49 | Beginner, building open source footprint |
-| E | 0-29 | Low activity level |
+| A | 85-100 | Top-tier influence, renowned open source contributor |
+| B | 65-84 | Active developer with notable community presence |
+| C | 45-64 | Consistently active, steady contributor |
+| D | 25-44 | Beginner, building open source footprint |
+| E | 0-24 | Just getting started |
 
 ### Evaluation Dimensions
 
@@ -213,22 +212,34 @@ GET https://api.github.com/users/{username}/repos?per_page=100&sort=updated
 ### Local Scoring Algorithm
 
 ```javascript
-// Base score
-let score = 5;
+let score = 12;  // Base
 
-// Follower bonus
-if (followers >= 10000) score += 35;
-else if (followers >= 1000) score += 25;
-else if (followers >= 100) score += 15;
+// Followers (max 30)
+if (followers >= 50000) score += 30;
+else if (followers >= 10000) score += 25;
+else if (followers >= 1000) score += 18;
+else if (followers >= 100) score += 12;
+else if (followers >= 10) score += 7;
+else if (followers >= 1) score += 3;
 
-// Total stars bonus
-if (totalStars >= 10000) score += 35;
-else if (totalStars >= 1000) score += 25;
+// Stars (max 35)
+if (totalStars >= 50000) score += 35;
+else if (totalStars >= 10000) score += 30;
+else if (totalStars >= 1000) score += 22;
 else if (totalStars >= 100) score += 15;
+else if (totalStars >= 50) score += 13;
+else if (totalStars >= 20) score += 10;
 
-// Repository count bonus
-if (publicRepos >= 50) score += 15;
-else if (publicRepos >= 20) score += 10;
+// Repos (max 15)
+if (repos >= 50) score += 15;
+else if (repos >= 30) score += 12;
+else if (repos >= 15) score += 10;
+else if (repos >= 5) score += 7;
+
+// Language diversity (max 10)
+score += Math.min(10, languages.length * 2);
+
+// Grades: A(85+), B(65+), C(45+), D(25+), E(<25)
 ```
 
 ## Development
