@@ -90,9 +90,8 @@ devscore/
 
 ### Prerequisites
 
-- Node.js >= 16.0
 - MetaMask browser extension
-- GenLayer testnet GEN tokens
+- That's it - no tokens or balance required
 
 ### Installation
 
@@ -111,11 +110,7 @@ Add GenLayer testnet:
 - Chain ID: 61999
 - Currency Symbol: GEN
 
-3. **Get testnet tokens**
-
-Visit [GenLayer Studio](https://studio.genlayer.com) to claim testnet GEN tokens.
-
-4. **Start frontend**
+3. **Start frontend**
 
 ```bash
 cd frontend
@@ -124,7 +119,7 @@ python3 -m http.server 8000
 npx serve .
 ```
 
-5. **Access the application**
+4. **Access the application**
 
 Open browser and navigate to `http://localhost:8000`
 
@@ -152,7 +147,7 @@ Generate a reputation report for a GitHub user.
 }
 ```
 
-**Gas Cost:** ~0.001 GEN (free on testnet)
+**Gas Cost:** Free (no GEN deducted)
 
 #### get_score(github_handle: str) -> str
 
@@ -197,9 +192,8 @@ const CONFIG = {
 
 | Error Type | Cause | Solution |
 |------------|-------|----------|
-| duplicate key | User already analyzed | Display local score |
-| user rejected | User cancelled transaction | Prompt to retry |
-| insufficient funds | Insufficient GEN balance | Get tokens from faucet |
+| duplicate key | User already analyzed | Display local score instead |
+| user rejected | User cancelled MetaMask prompt | Try again |
 
 ## API Reference
 
@@ -278,26 +272,29 @@ genlayer deploy --contract contracts/devscore.py
 
 > Before mainnet deployment ensure:
 > - Contract code thoroughly tested
-> - Sufficient GEN tokens available
 > - Security audit completed
 
 ## FAQ
 
-**Q: Why can each user only be analyzed once?**
+**Why can I only analyze a user once?**
 
-A: By design, each GitHub username stores only one score result to avoid redundant gas consumption. To update scores, deploy a new contract or modify contract logic.
+Contract uses a TreeMap with the username as key, so each handle can only be written once. If you want to re-score someone, deploy a fresh contract instance.
 
-**Q: How long does scoring take?**
+**Do I need to pay GEN?**
 
-A: On-chain AI consensus typically takes 30-60 seconds. Frontend displays local estimated score immediately.
+No. Calling the contract doesn't actually cost GEN - you just need to have MetaMask switched to the GenLayer Studio network and confirm the transaction. No tokens are deducted.
 
-**Q: Do testnet transactions cost fees?**
+**Analysis seems slow?**
 
-A: Testnet transactions are free, but you need to hold testnet GEN tokens.
+On-chain AI consensus runs across multiple validators, takes roughly 30-60 seconds. The frontend shows you a local score right away so you're not staring at a spinner.
 
-**Q: How do I get testnet tokens?**
+**How do I switch to GenLayer Studio network?**
 
-A: Visit GenLayer Studio, connect your wallet, and claim test tokens.
+The app handles it automatically - when you click Connect MetaMask, it'll prompt you to add/switch to GenLayer Studio (Chain ID: 61999). Just approve the network switch.
+
+**Where do I get a wallet?**
+
+Install [MetaMask](https://metamask.io), create a wallet, then connect to the app. That's it - no tokens needed.
 
 ## Contributing
 
