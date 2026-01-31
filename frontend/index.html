@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevScore - GitHub Developer Reputation</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; min-height: 100vh; }
+    
+    nav { background: #fff; border-bottom: 1px solid #e5e5e5; padding: 0 20px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-weight: 600; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+    .logo svg { width: 24px; height: 24px; }
+    
+    .wallet-btn { background: #18181b; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    .wallet-btn:hover { background: #27272a; }
+    .wallet-btn:disabled { background: #a1a1aa; cursor: not-allowed; }
+    
+    .wallet-info { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+    .wallet-info .address { color: #52525b; display: flex; align-items: center; gap: 6px; }
+    .wallet-info .dot { width: 6px; height: 6px; background: #22c55e; border-radius: 50%; }
+    .disconnect { color: #ef4444; cursor: pointer; font-size: 12px; }
+    .disconnect:hover { text-decoration: underline; }
+    
+    main { max-width: 600px; margin: 40px auto; padding: 0 20px; }
+    
+    h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+    .subtitle { color: #71717a; margin-bottom: 32px; font-size: 14px; }
+    
+    .search-box { display: flex; gap: 8px; margin-bottom: 12px; }
+    .input-wrap { flex: 1; position: relative; }
+    .input-wrap span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #a1a1aa; font-size: 14px; }
+    .input-wrap input { width: 100%; padding: 12px 12px 12px 110px; border: 1px solid #e5e5e5; border-radius: 8px; font-size: 14px; outline: none; }
+    .input-wrap input:focus { border-color: #18181b; }
+    
+    .search-btn { background: #18181b; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; }
+    .search-btn:hover { background: #27272a; }
+    .search-btn:disabled { background: #d4d4d8; cursor: not-allowed; }
+    
+    .hint { display: flex; justify-content: space-between; font-size: 12px; color: #a1a1aa; margin-bottom: 24px; }
+    .hint a { color: #71717a; cursor: pointer; }
+    .hint a:hover { color: #18181b; }
+    
+    .status { text-align: center; padding: 20px; color: #71717a; font-size: 14px; }
+    .status.error { color: #ef4444; }
+    
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+    
+    .card-header { padding: 20px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #f5f5f5; }
+    .user-info { display: flex; gap: 12px; }
+    .avatar { width: 48px; height: 48px; border-radius: 50%; }
+    .user-meta h3 { font-size: 16px; font-weight: 600; }
+    .user-meta p { color: #71717a; font-size: 13px; margin-top: 2px; }
+    .user-stats { display: flex; gap: 16px; margin-top: 8px; font-size: 12px; color: #71717a; }
+    
+    .score-badge { text-align: center; min-width: 70px; }
+    .grade { font-size: 32px; font-weight: 700; line-height: 1; }
+    .grade.A { color: #22c55e; }
+    .grade.B { color: #3b82f6; }
+    .grade.C { color: #f59e0b; }
+    .grade.D { color: #f97316; }
+    .grade.E { color: #ef4444; }
+    .score-num { font-size: 12px; color: #71717a; margin-top: 4px; }
+    
+    .card-body { padding: 20px; }
+    .section-title { font-size: 12px; font-weight: 500; color: #71717a; margin-bottom: 12px; text-transform: uppercase; }
+    
+    .metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+    .metric { background: #fafafa; padding: 12px; border-radius: 8px; }
+    .metric-label { font-size: 12px; color: #71717a; }
+    .metric-value { font-size: 16px; font-weight: 600; margin-top: 4px; }
+    .metric-bar { height: 4px; background: #e5e5e5; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+    .metric-fill { height: 100%; background: #18181b; border-radius: 2px; }
+    
+    .languages { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+    .lang-tag { background: #f4f4f5; padding: 4px 10px; border-radius: 4px; font-size: 12px; color: #52525b; }
+    
+    .summary { background: #fafafa; padding: 16px; border-radius: 8px; }
+    .summary-title { font-size: 12px; font-weight: 500; color: #71717a; margin-bottom: 8px; }
+    .summary-text { font-size: 14px; line-height: 1.6; }
+    
+    .tx-link { margin-top: 16px; padding-top: 16px; border-top: 1px solid #f5f5f5; }
+    .tx-link a { color: #3b82f6; font-size: 12px; text-decoration: none; }
+    .tx-link a:hover { text-decoration: underline; }
+    
+    .empty { text-align: center; padding: 60px 20px; color: #a1a1aa; }
+    .empty svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
+    
+    footer { text-align: center; padding: 20px; color: #a1a1aa; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      DevScore
+    </div>
+    <div id="walletArea">
+      <button class="wallet-btn" id="connectBtn" onclick="connectWallet()">Connect MetaMask</button>
+    </div>
+  </nav>
+
+  <main>
+    <h1>GitHub Developer Reputation</h1>
+    <p class="subtitle">AI-powered analysis stored on GenLayer blockchain</p>
+
+    <div class="search-box">
+      <div class="input-wrap">
+        <span>github.com/</span>
+        <input type="text" id="handleInput" placeholder="username" onkeypress="if(event.key==='Enter')analyze()">
+      </div>
+      <button class="search-btn" id="analyzeBtn" onclick="analyze()" disabled>Analyze</button>
+    </div>
+
+    <div class="hint">
+      <span id="costHint"></span>
+      <span>Try: <a onclick="setHandle('torvalds')">torvalds</a>, <a onclick="setHandle('gaearon')">gaearon</a>, <a onclick="setHandle('yyx990803')">yyx990803</a></span>
+    </div>
+
+    <div id="statusArea"></div>
+    <div id="resultArea">
+      <div class="empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <div>Enter a GitHub username to analyze</div>
+      </div>
+    </div>
+  </main>
+
+  <footer></footer>
+
+  <script>
+    // GenLayer config
+    const CONFIG = {
+      chainId: 61999,
+      chainIdHex: '0xf22f',
+      rpcUrl: 'https://studio.genlayer.com/api',
+      chainName: 'GenLayer Studio',
+      contractAddress: '0x02bd9B7D953067500D9E4D5A78DC56e1965e083f'
+    };
+
+    const ABI = [
+      "function generate_report(string github_handle) returns (string)",
+      "function get_score(string github_handle) view returns (string)"
+    ];
+
+    let provider, signer, contract;
+
+    function setHandle(h) {
+      document.getElementById('handleInput').value = h;
+    }
+
+    // Connect wallet
+    async function connectWallet() {
+      if (!window.ethereum) {
+        alert('Please install MetaMask');
+        return;
+      }
+
+      const btn = document.getElementById('connectBtn');
+      btn.disabled = true;
+      btn.textContent = 'Connecting...';
+
+      try {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (currentChainId !== CONFIG.chainIdHex) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: CONFIG.chainIdHex }]
+            });
+          } catch (switchError) {
+            if (switchError.code === 4902) {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: CONFIG.chainIdHex,
+                  chainName: CONFIG.chainName,
+                  rpcUrls: [CONFIG.rpcUrl],
+                  nativeCurrency: { name: 'GEN', symbol: 'GEN', decimals: 18 }
+                }]
+              });
+            } else {
+              throw switchError;
+            }
+          }
+        }
+
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+        contract = new ethers.Contract(CONFIG.contractAddress, ABI, signer);
+
+        const address = await signer.getAddress();
+        updateWalletUI(address);
+        document.getElementById('analyzeBtn').disabled = false;
+
+      } catch (err) {
+        console.error(err);
+        alert('Connection failed: ' + err.message);
+        document.getElementById('connectBtn').disabled = false;
+        document.getElementById('connectBtn').textContent = 'Connect MetaMask';
+      }
+    }
+
+    // Disconnect
+    function disconnect() {
+      provider = null;
+      signer = null;
+      contract = null;
+      document.getElementById('walletArea').innerHTML = '<button class="wallet-btn" id="connectBtn" onclick="connectWallet()">Connect MetaMask</button>';
+      document.getElementById('analyzeBtn').disabled = true;
+    }
+
+    // Update wallet UI
+    function updateWalletUI(address) {
+      const short = address.slice(0, 6) + '...' + address.slice(-4);
+      document.getElementById('walletArea').innerHTML = `
+        <div class="wallet-info">
+          <span class="address"><span class="dot"></span>${short}</span>
+          <span class="disconnect" onclick="disconnect()">Disconnect</span>
+        </div>
+      `;
+    }
+
+    // Analyze
+    async function analyze() {
+      const handle = document.getElementById('handleInput').value.trim();
+      if (!handle) {
+        alert('Please enter a GitHub username');
+        return;
+      }
+
+      const btn = document.getElementById('analyzeBtn');
+      btn.disabled = true;
+      btn.textContent = 'Analyzing...';
+
+      document.getElementById('statusArea').innerHTML = '<div class="status">Fetching GitHub data...</div>';
+      document.getElementById('resultArea').innerHTML = '';
+
+      try {
+        // Fetch GitHub data
+        const [userRes, reposRes] = await Promise.all([
+          fetch(`https://api.github.com/users/${handle}`),
+          fetch(`https://api.github.com/users/${handle}/repos?per_page=100&sort=updated`)
+        ]);
+
+        if (!userRes.ok) {
+          throw new Error('User not found');
+        }
+
+        const user = await userRes.json();
+        const repos = await reposRes.json();
+
+        // Calculate local score
+        const totalStars = repos.reduce((sum, r) => sum + (r.stargazers_count || 0), 0);
+        const languages = [...new Set(repos.map(r => r.language).filter(Boolean))].slice(0, 6);
+        
+        let score = 5;
+        
+        if (user.followers >= 10000) score += 35;
+        else if (user.followers >= 1000) score += 25;
+        else if (user.followers >= 100) score += 15;
+        else if (user.followers >= 10) score += 8;
+        else if (user.followers >= 1) score += 3;
+
+        if (totalStars >= 10000) score += 35;
+        else if (totalStars >= 1000) score += 25;
+        else if (totalStars >= 100) score += 15;
+        else if (totalStars >= 10) score += 8;
+        else if (totalStars >= 1) score += 3;
+
+        if (user.public_repos >= 50) score += 15;
+        else if (user.public_repos >= 20) score += 10;
+        else if (user.public_repos >= 5) score += 5;
+        else if (user.public_repos >= 1) score += 2;
+
+        score = Math.min(100, score);
+        
+        let grade;
+        if (score >= 90) grade = 'A';
+        else if (score >= 70) grade = 'B';
+        else if (score >= 50) grade = 'C';
+        else if (score >= 30) grade = 'D';
+        else grade = 'E';
+
+        // Generate summary
+        let summary;
+        if (grade === 'A') summary = 'Top-tier developer with massive community influence';
+        else if (grade === 'B') summary = 'Well-known developer with significant open source contributions';
+        else if (grade === 'C') summary = 'Active developer with steady contribution history';
+        else if (grade === 'D') summary = 'Growing developer building their open source presence';
+        else summary = 'New to open source, just getting started';
+
+        // Call contract
+        document.getElementById('statusArea').innerHTML = '<div class="status">Submitting to blockchain...</div>';
+        
+        let txHash = null;
+        try {
+          const tx = await contract.generate_report(handle);
+          txHash = tx.hash;
+          document.getElementById('statusArea').innerHTML = '<div class="status">Transaction submitted, AI consensus in progress...</div>';
+        } catch (txErr) {
+          if (txErr.message && (txErr.message.includes('duplicate') || txErr.message.includes('already exists'))) {
+            console.log('Already analyzed on chain, showing local result');
+          } else if (txErr.code === 'ACTION_REJECTED') {
+            throw new Error('Transaction cancelled');
+          } else {
+            console.error('Contract error:', txErr);
+          }
+        }
+
+        // Render result
+        document.getElementById('statusArea').innerHTML = '';
+        renderResult({
+          user,
+          repos,
+          totalStars,
+          languages,
+          score,
+          grade,
+          summary,
+          txHash
+        });
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById('statusArea').innerHTML = `<div class="status error">Error: ${err.message}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Analyze';
+      }
+    }
+
+    // Render result card
+    function renderResult(data) {
+      const { user, repos, totalStars, languages, score, grade, summary, txHash } = data;
+      
+      const repoScore = Math.min(100, (user.public_repos / 50) * 100);
+      const activityScore = Math.min(100, repos.length > 0 ? 
+        (repos.filter(r => new Date(r.pushed_at) > new Date(Date.now() - 180*24*60*60*1000)).length / repos.length) * 100 : 0);
+      const communityScore = Math.min(100, ((user.followers / 1000) + (totalStars / 1000)) * 10);
+      const techScore = Math.min(100, languages.length * 15);
+
+      let txLink = '';
+      if (txHash) {
+        txLink = `
+          <div class="tx-link">
+            <a href="https://studio.genlayer.com/explorer/transactions/${txHash}" target="_blank">
+              View on GenLayer Explorer: ${txHash.slice(0, 10)}...${txHash.slice(-8)}
+            </a>
+          </div>
+        `;
+      }
+
+      document.getElementById('resultArea').innerHTML = `
+        <div class="card">
+          <div class="card-header">
+            <div class="user-info">
+              <img class="avatar" src="${user.avatar_url}" alt="">
+              <div class="user-meta">
+                <h3>${user.name || user.login}</h3>
+                <p>@${user.login}</p>
+                <div class="user-stats">
+                  <span>${user.public_repos} repos</span>
+                  <span>${user.followers} followers</span>
+                  <span>${totalStars} stars</span>
+                </div>
+              </div>
+            </div>
+            <div class="score-badge">
+              <div class="grade ${grade}">${grade}</div>
+              <div class="score-num">${score}/100</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="section-title">Score Details</div>
+            <div class="metrics">
+              <div class="metric">
+                <div class="metric-label">Repository Quality</div>
+                <div class="metric-value">${Math.round(repoScore)}</div>
+                <div class="metric-bar"><div class="metric-fill" style="width:${repoScore}%"></div></div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Activity</div>
+                <div class="metric-value">${Math.round(activityScore)}</div>
+                <div class="metric-bar"><div class="metric-fill" style="width:${activityScore}%"></div></div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Community Impact</div>
+                <div class="metric-value">${Math.round(communityScore)}</div>
+                <div class="metric-bar"><div class="metric-fill" style="width:${communityScore}%"></div></div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Technical Skills</div>
+                <div class="metric-value">${Math.round(techScore)}</div>
+                <div class="metric-bar"><div class="metric-fill" style="width:${techScore}%"></div></div>
+              </div>
+            </div>
+            
+            <div class="section-title">Languages</div>
+            <div class="languages">
+              ${languages.map(l => `<span class="lang-tag">${l}</span>`).join('')}
+              ${languages.length === 0 ? '<span class="lang-tag">None</span>' : ''}
+            </div>
+            
+            <div class="summary">
+              <div class="summary-title">AI Analysis</div>
+              <div class="summary-text">${summary}</div>
+            </div>
+            
+            ${txLink}
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
