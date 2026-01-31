@@ -1,6 +1,7 @@
 # DevScore
 
 A decentralized GitHub developer reputation scoring system built on GenLayer blockchain.
+"My goal was to leverage GenLayer's unique ability to 'see' the web and 'think' via AI. This DApp provides a trustless layer for project owners to verify their community members' real technical influence."
 
 ## Overview
 
