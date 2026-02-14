@@ -84,6 +84,14 @@
     .tx-link a { color: #3b82f6; font-size: 12px; text-decoration: none; }
     .tx-link a:hover { text-decoration: underline; }
     
+    .nft-section { margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%); border-radius: 10px; border: 1px dashed #d4d4d8; }
+    .nft-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .nft-header svg { width: 20px; height: 20px; color: #71717a; }
+    .nft-header span:first-of-type { font-weight: 600; font-size: 14px; }
+    .coming-soon { background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+    .nft-desc { font-size: 13px; color: #71717a; margin-bottom: 14px; line-height: 1.5; }
+    .nft-btn { width: 100%; padding: 12px; background: #e4e4e7; color: #a1a1aa; border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: not-allowed; }
+    
     .empty { text-align: center; padding: 60px 20px; color: #a1a1aa; }
     .empty svg { width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; }
     
@@ -423,6 +431,16 @@
             </div>
             
             ${txLink}
+            
+            <div class="nft-section">
+              <div class="nft-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                <span>Mint Reputation NFT</span>
+                <span class="coming-soon">Coming Soon</span>
+              </div>
+              <p class="nft-desc">Mint your developer reputation as an on-chain NFT credential. Verifiable proof of your open source contributions.</p>
+              <button class="nft-btn" disabled>Mint NFT</button>
+            </div>
           </div>
         </div>
       `;

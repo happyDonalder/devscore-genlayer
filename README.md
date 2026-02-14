@@ -286,6 +286,15 @@ genlayer deploy --contract contracts/devscore.py
 > - Contract code thoroughly tested
 > - Security audit completed
 
+## Roadmap
+
+- [x] AI consensus scoring
+- [x] On-chain storage
+- [x] MetaMask integration
+- [ ] **Mint Reputation NFT** (Coming Soon) - Mint your score as an on-chain credential
+- [ ] Score Badge - Embeddable badge for GitHub profile
+- [ ] Leaderboard - Top developers ranking
+
 ## FAQ
 
 **Why can I only analyze a user once?**
